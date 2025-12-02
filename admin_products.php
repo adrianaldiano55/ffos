@@ -67,15 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $code       = trim($_POST['product_code'] ?? '');
         $price      = (float)($_POST['product_price'] ?? 0);
         $categoryId = (int)($_POST['product_category_id'] ?? 0);
+        $discount   = $_POST['product_discount'] ?? null;
 
         if ($name !== '' && $code !== '' && $price > 0 && $categoryId > 0) {
             $imagePath = handle_image_upload('product_image');
-
+// Inserted discount into variables and inserted into statement (By; Adrian Aldiano)
             $stmt = $pdo->prepare(
-                "INSERT INTO menu_items (code, category_id, is_bundle, name, price, image_path, is_active)
-                 VALUES (?, ?, 0, ?, ?, ?, 1)"
+                "INSERT INTO menu_items (code, category_id, is_bundle, name, price, discount, image_path, is_active)
+                 VALUES (?, ?, 0, ?, ?, ?, ?, 1)"
             );
-            $stmt->execute([$code, $categoryId, $name, $price, $imagePath]);
+            $stmt->execute([$code, $categoryId, $name, $price, $discount, $imagePath]);
         }
     }
 
@@ -86,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $code       = trim($_POST['product_code'] ?? '');
         $price      = (float)($_POST['product_price'] ?? 0);
         $categoryId = (int)($_POST['product_category_id'] ?? 0);
+        $discount   = $_POST['product_discount'] ?? null;
         $existing   = $_POST['existing_product_image'] ?? null;
 
         if ($id > 0 && $name !== '' && $code !== '' && $price > 0 && $categoryId > 0) {
@@ -93,13 +95,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($imagePath === null) {
                 $imagePath = $existing; // keep old one
             }
-
+// Inserted discount into variables and inserted into statement (By; Adrian Aldiano)
             $stmt = $pdo->prepare(
                 "UPDATE menu_items
-                 SET code = ?, category_id = ?, name = ?, price = ?, image_path = ?
+                 SET code = ?, category_id = ?, name = ?, price = ?, discount = ?, image_path = ?
                  WHERE id = ? AND is_bundle = 0"
             );
-            $stmt->execute([$code, $categoryId, $name, $price, $imagePath, $id]);
+            $stmt->execute([$code, $categoryId, $name, $price, $discount,$imagePath, $id]);
         }
     }
 
@@ -216,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $categories = $pdo->query("SELECT id, name FROM product_categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
 $products   = $pdo->query(
-    "SELECT m.id, m.code, m.name, m.price, m.is_bundle, m.image_path,
+    "SELECT m.id, m.code, m.name, m.price, m.discount, m.is_bundle, m.image_path,
             m.category_id,
             c.name AS category_name
      FROM menu_items m
@@ -335,6 +337,7 @@ $stats = [
                                 <th>Code</th>
                                 <th>Category</th>
                                 <th class="text-end">Price</th>
+                                <th class="text-end">Discount</th>
                                 <th style="width:80px;" class="text-end">Actions</th>
                             </tr>
                             </thead>
@@ -353,6 +356,7 @@ $stats = [
                                     <td><span class="badge bg-secondary"><?= htmlspecialchars($p['code'] ?? '') ?></span></td>
                                     <td><?= htmlspecialchars($p['category_name'] ?? '') ?></td>
                                     <td class="text-end">₱<?= number_format((float)$p['price'], 2) ?></td>
+                                    <td class="text-end"><?= !empty($p['discount']) ? number_format((float)$p['discount'], 2) . '%' : '-' ?> </td>
                                     <td class="text-end">
                                         <button type="button" class="btn btn-sm btn-outline-primary"
                                                 onclick="openProductModal('edit',
@@ -360,6 +364,7 @@ $stats = [
                                                     '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
                                                     '<?= htmlspecialchars($p['code'] ?? '', ENT_QUOTES) ?>',
                                                     '<?= htmlspecialchars((string)($p['price'] ?? ''), ENT_QUOTES) ?>',
+                                                    '<?= (float)($p['discount'] ?? 0) ?>',
                                                     <?= (int)($p['category_id'] ?? 0) ?>,
                                                     '<?= htmlspecialchars($p['image_path'] ?? '', ENT_QUOTES) ?>'
                                                 )">
@@ -573,6 +578,17 @@ $stats = [
                             <span class="input-group-text">₱</span>
                             <input type="number" step="0.01" name="product_price" id="productPrice"
                                    class="form-control" required>
+                        </div>
+                    </div>
+<!-- Discount Modal (By: Adrian Aldiano)-->
+                    <div class="mb-2">
+                        <label class="form-label mb-1">
+                            Discount <span class="text-danger"></span>
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">₱ %</span>
+                            <input type="number" step="0.01" name="product_discount" id="productDiscount"
+                                   class="form-control">
                         </div>
                     </div>
                 </div>
@@ -801,13 +817,14 @@ function openCategoryModal(mode, id = null, name = '') {
 }
 
 // --- Product modal open ---
-function openProductModal(mode, id = null, name = '', code = '', price = '', catId = 0, imgPath = '') {
+function openProductModal(mode, id = null, name = '', code = '', price = '', discount = '', catId = 0, imgPath = '') {
     const title = document.getElementById('productModalTitle');
     const action = document.getElementById('productAction');
     const idInput = document.getElementById('productId');
     const nameInp = document.getElementById('productName');
     const codeInp = document.getElementById('productCode');
     const priceInp = document.getElementById('productPrice');
+    const discInp = document.getElementById('productDiscount'); // Discount field (By: Adrian Aldiano)
     const catSel = document.getElementById('productCategoryId');
     const existingImg = document.getElementById('productExistingImage');
     const previewImg = document.getElementById('productPreviewImg');
@@ -820,6 +837,7 @@ function openProductModal(mode, id = null, name = '', code = '', price = '', cat
         nameInp.value = '';
         codeInp.value = '';
         priceInp.value = '';
+        discInp.value = ''; // Discount field (By: Adrian Aldiano)
         catSel.value = '';
         existingImg.value = '';
         previewImg.style.display = 'none';
@@ -831,6 +849,7 @@ function openProductModal(mode, id = null, name = '', code = '', price = '', cat
         nameInp.value = name || '';
         codeInp.value = code || '';
         priceInp.value = price || '';
+        discInp.value = discount || ''; // Discount field (By: Adrian Aldiano)
         catSel.value = catId || '';
         existingImg.value = imgPath || '';
         if (imgPath) {

@@ -18,7 +18,7 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all active menu items (with category)
 $itemStmt = $pdo->query("
-    SELECT m.id, m.name, m.price, m.image_path, c.name AS category_name, c.id AS category_id
+    SELECT m.id, m.name, m.price, m.discount, m.image_path, c.name AS category_name, c.id AS category_id
     FROM menu_items m
     LEFT JOIN product_categories c ON c.id = m.category_id
     WHERE m.is_active = 1
@@ -101,17 +101,31 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .category-ribbon {
-            position: absolute;
-            top: 0.45rem;
-            right: -0.3rem;
-            background: #111827;
-            color: #f9fafb;
-            padding: 0.2rem 0.6rem;
-            border-radius: 999px 0 0 999px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        position: absolute;
+        top: 0.45rem;
+        right: -0.3rem;
+        background: #111827;
+        color: #f9fafb;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px 0 0 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         }
+
+        .discount-ribbon {
+        position: absolute;
+        top: 1.8rem;
+        right: -0.3rem;
+        background: #dc2626;
+        color: #f9fafb;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px 0 0 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        }   
 
         /* Sticky footer cart */
         .cart-footer {
@@ -217,10 +231,17 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="col-sm-6 col-md-4 col-lg-3 product-card-wrapper"
                              data-category-id="<?= (int)($p['category_id'] ?? 0) ?>">
                             <div class="product-card">
+                    <!-- RIBBON COPY FOR DISCOUNT -->
                                 <?php if (!empty($p['category_name'])): ?>
-                                    <div class="category-ribbon">
-                                        <?= htmlspecialchars($p['category_name']) ?>
-                                    </div>
+                                <div class="category-ribbon">
+                                    <?= htmlspecialchars($p['category_name']) ?>
+                                </div>
+                                <?php endif; ?>
+                    <!-- ACTUAL DISCOUNT RIBBON (By; Adrian Aldiano) -->
+                                <?php if (!empty($p['discount'])&& (float)$p['discount'] > 0): ?>
+                                <div class="discount-ribbon">
+                                    <?= number_format((float)$p['discount'],0 ) ?>% OFF
+                                </div>
                                 <?php endif; ?>
                                 <?php if (!empty($p['image_path']) && file_exists($p['image_path'])): ?>
                                     <img src="<?= htmlspecialchars($p['image_path']) ?>"

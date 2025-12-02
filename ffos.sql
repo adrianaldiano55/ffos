@@ -65,6 +65,8 @@ CREATE TABLE `menu_items` (
   `is_bundle` tinyint(1) NOT NULL DEFAULT 0,
   `name` varchar(100) NOT NULL,
   `price` decimal(10,2) NOT NULL,
+-- Discount column added (by: Adrian Aldiano)
+  `discount` decimal(10,2) DEFAULT NULL,
   `image_path` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -73,34 +75,27 @@ CREATE TABLE `menu_items` (
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `code`, `category_id`, `is_bundle`, `name`, `price`, `image_path`, `is_active`) VALUES
-(1, 'BIGMAC', NULL, 0, 'Big Mac Meal', 150.00, NULL, 0),
-(2, 'MCCHKN', NULL, 0, 'McChicken Meal', 140.00, NULL, 0),
-(3, 'FRIESL', NULL, 0, 'Large Fries', 60.00, NULL, 0),
-(4, 'COKEL', NULL, 0, 'Large Coke', 45.00, NULL, 0),
-(5, 'wfwqfwq', 1, 0, 'safasf', 51581.00, 'uploads/prod_692cfa68962f31.90440074.jpg', 0),
-(6, 'dsada', NULL, 1, 'jkanbjksak', 815.00, NULL, 0),
-(7, 'sada', NULL, 1, 'dasd', 51881.00, NULL, 0),
-(8, 'ww', 1, 0, 'sda', 242.00, NULL, 0),
-(9, 'llp', NULL, 1, 'wet', 105.00, NULL, 0),
-(10, 'tew', NULL, 1, 'tew', 340.00, NULL, 0),
-(11, 'hhh', NULL, 1, 'n', 45.00, NULL, 0),
-(12, 'wwrt', 2, 0, 'efawefg', 325325.00, NULL, 0),
-(27, 'BRG001', 1, 0, 'Classic Cheeseburger', 79.00, 'images/burger1.jpg', 1),
-(28, 'BRG002', 1, 0, 'Beef BBQ Burger', 99.00, 'images/burger2.jpg', 1),
-(29, 'BRG003', 1, 0, 'Double Patty Stack', 129.00, 'images/burger3.jpg', 1),
-(30, 'CHK001', 2, 0, '1-PC Crispy Chicken', 89.00, 'images/chicken1.jpg', 1),
-(31, 'CHK002', 2, 0, '2-PC Chicken with Rice', 149.00, 'images/chicken2.jpg', 1),
-(32, 'SDE001', 3, 0, 'Regular Fries', 39.00, 'images/fries1.jpg', 1),
-(33, 'SDE002', 3, 0, 'Large Fries', 59.00, 'images/fries2.jpg', 1),
-(34, 'SDE003', 3, 0, 'Butter Corn Cup', 35.00, 'images/corn1.jpg', 1),
-(35, 'DRK001', 4, 0, 'Iced Tea', 35.00, 'images/icedtea.jpg', 1),
-(36, 'DRK002', 4, 0, 'Soft Drink (Soda)', 30.00, 'images/soda.jpg', 1),
-(37, 'DRK003', 4, 0, 'Bottled Water', 25.00, 'images/water.jpg', 1),
-(38, 'DST001', 5, 0, 'Vanilla Sundae', 45.00, 'images/sundae1.jpg', 1),
-(39, 'DST002', 5, 0, 'Choco Sundae', 55.00, 'images/sundae2.jpg', 1),
-(40, 'DST003', 5, 0, 'Apple Pie', 49.00, 'images/pie1.jpg', 1),
-(41, 'CHKNGTS', 2, 0, 'Chicken Nuggets', 100.00, NULL, 1);
+INSERT INTO `menu_items` (`id`, `code`, `category_id`, `is_bundle`, `name`, `price`, `discount`,`image_path`, `is_active`) VALUES
+(1, 'BIGMAC', NULL, 0, 'Big Mac Meal', 150.00, 23.00,NULL, 0),
+(2, 'MCCHKN', NULL, 0, 'McChicken Meal', 140.00,NULL,NULL, 0),
+(3, 'FRIESL', NULL, 0, 'Large Fries', 60.00,NULL,NULL, 0),
+(4, 'COKEL', NULL, 0, 'Large Coke', 45.00,NULL,NULL, 0),
+-- Deleted all the unneccessary stuff and added discount values
+(27, 'BRG001', 1, 0, 'Classic Cheeseburger', 79.00,50.00, 'images/burger1.jpg', 1),
+(28, 'BRG002', 1, 0, 'Beef BBQ Burger', 99.00,NULL, 'images/burger2.jpg', 1),
+(29, 'BRG003', 1, 0, 'Double Patty Stack', 129.00,NULL, 'images/burger3.jpg', 1),
+(30, 'CHK001', 2, 0, '1-PC Crispy Chicken', 89.00,NULL, 'images/chicken1.jpg', 1),
+(31, 'CHK002', 2, 0, '2-PC Chicken with Rice', 149.00,NULL,'images/chicken2.jpg', 1),
+(32, 'SDE001', 3, 0, 'Regular Fries', 39.00,NULL, 'images/fries1.jpg', 1),
+(33, 'SDE002', 3, 0, 'Large Fries', 59.00,NULL,'images/fries2.jpg', 1),
+(34, 'SDE003', 3, 0, 'Butter Corn Cup', 35.00,NULL, 'images/corn1.jpg', 1),
+(35, 'DRK001', 4, 0, 'Iced Tea', 35.00,NULL, 'images/icedtea.jpg', 1),
+(36, 'DRK002', 4, 0, 'Soft Drink (Soda)', 30.00,NULL, 'images/soda.jpg', 1),
+(37, 'DRK003', 4, 0, 'Bottled Water', 25.00,NULL, 'images/water.jpg', 1),
+(38, 'DST001', 5, 0, 'Vanilla Sundae', 45.00,NULL, 'images/sundae1.jpg', 1),
+(39, 'DST002', 5, 0, 'Choco Sundae', 55.00,NULL,'images/sundae2.jpg', 1),
+(40, 'DST003', 5, 0, 'Apple Pie', 49.00,NULL, 'images/pie1.jpg', 1),
+(41, 'CHKNGTS', 2, 0, 'Chicken Nuggets', 100.00,NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
