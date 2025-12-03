@@ -20,7 +20,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Products for teller to add to orders
 $prodStmt = $pdo->query("
-    SELECT id, name, price, image_path
+    SELECT id, name, price, discount, image_path
     FROM menu_items
     WHERE is_active = 1
     ORDER BY name
@@ -242,6 +242,7 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th>Item</th>
                                     <th class="text-center" style="width:80px;">Qty</th>
                                     <th class="text-end">Price</th>
+                                    <th class="text-end">Discount</th>
                                     <th class="text-end">Sub</th>
                                     <th style="width:80px;">Source</th>
                                     <th style="width:40px;"></th>
@@ -276,6 +277,7 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <th>Product</th>
                                     <th class="text-end">Price</th>
+                                    <th class="text-end">Discount</th>
                                     <th style="width:80px;" class="text-end">Action</th>
                                 </tr>
                                 </thead>
@@ -286,13 +288,15 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="fw-semibold"><?= htmlspecialchars($p['name'] ?? '') ?></div>
                                         </td>
                                         <td class="text-end">₱<?= number_format((float)$p['price'], 2) ?></td>
+                                        <td class="text-end"><?= !empty($p['discount']) ? number_format((float)$p['discount'], 2) . '%' : '-' ?></td>
                                         <td class="text-end">
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-primary"
                                                     onclick="tellerAddItem(
                                                         <?= (int)$p['id'] ?>,
                                                         '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
-                                                        <?= (float)$p['price'] ?>
+                                                        <?= (float)$p['price'] ?>,
+                                                        <?= !empty($p['discount']) ? (float)$p['discount'] : 0 ?>
                                                     )">
                                                 Add
                                             </button>
@@ -531,6 +535,7 @@ function openOrderModal(orderId, displayNumber) {
                 menu_item_id: it.menu_item_id,
                 name: it.name,
                 price: parseFloat(it.price),
+                discount: parseFloat(it.discount || 0),
                 qty: parseInt(it.quantity),
                 source: it.source === 'TELLER' ? 'TELLER' : 'CUSTOMER'
             }));
@@ -601,8 +606,13 @@ function renderOrderItems() {
     let total = 0;
 
     orderItems.forEach((item, idx) => {
-        const sub = item.price * item.qty;
-        total += sub;
+        let unitPrice = item.price;
+        if (item.discount > 0) {
+            const discountAmount = item.price * (item.discount / 100);
+            unitPrice = item.price - discountAmount;
+        }
+        const subtotal = unitPrice * item.qty;
+        total += subtotal;
 
         const tr = document.createElement('tr');
         tr.className = 'order-item-row';
@@ -617,7 +627,8 @@ function renderOrderItems() {
                        onchange="updateItemQty(${idx}, this.value)">
             </td>
             <td class="text-end">₱${item.price.toFixed(2)}</td>
-            <td class="text-end">₱${sub.toFixed(2)}</td>
+            <td class="text-end">${item.discount > 0 ? item.discount.toFixed(2) + '%' : '-'}</td>
+            <td class="text-end">₱${total.toFixed(2)}</td>
             <td>${item.source === 'TELLER'
                 ? '<span class="badge bg-info">Teller</span>'
                 : '<span class="badge bg-secondary">Customer</span>'}</td>
@@ -654,8 +665,9 @@ function removeOrderItem(index) {
     renderOrderItems();
 }
 
-function tellerAddItem(menuItemId, name, price) {
+function tellerAddItem(menuItemId, name, price, discount) {
     price = parseFloat(price);
+    discount = parseFloat(discount) || 0;
     const existingIndex = orderItems.findIndex(i => i.menu_item_id === menuItemId && i.source === 'TELLER');
     if (existingIndex !== -1) {
         orderItems[existingIndex].qty++;
@@ -665,6 +677,7 @@ function tellerAddItem(menuItemId, name, price) {
             menu_item_id: menuItemId,
             name: name,
             price: price,
+            discount: discount,
             qty: 1,
             source: 'TELLER'
         });
@@ -719,13 +732,22 @@ function confirmPayment() {
 
     const payload = {
         order_id: currentOrderId,
-        items: orderItems.map(i => ({
+        items: orderItems.map(i => {
+            const disc = parseFloat(i.discount) || 0;
+            const price = parseFloat(i.price) || 0;
+            const unit_price = disc > 0
+                ? +(price - (price * (disc / 100))).toFixed(2)
+                : +price;
+            return {
             id: i.id,
             menu_item_id: i.menu_item_id,
             quantity: i.qty,
-            price: i.price,
+            price: price,
+            discount: disc,
+            unit_price: unit_price,
             source: i.source
-        })),
+            };
+        }),
         cash: cash
     };
 

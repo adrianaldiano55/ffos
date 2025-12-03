@@ -25,9 +25,16 @@ try {
     foreach ($items as $it) {
         $price = (float)($it['price'] ?? 0);
         $qty   = (int)($it['qty'] ?? 0);
+        $discount = (float)($it['discount'] ?? 0);
         if ($qty <= 0 || $price < 0) continue;
-        $total += $price * $qty;
+
+        $unitPrice = $price;
+        if ($discount > 0) {
+            $unitPrice = $price - (($discount / 100) * $price);
+            }
+        $total += $unitPrice * $qty;
     }
+
     if ($total <= 0) {
         throw new Exception('Total cannot be zero.');
     }
@@ -61,18 +68,19 @@ try {
 
     // Insert items
     $insItem = $pdo->prepare("
-        INSERT INTO order_items (order_id, menu_item_id, quantity, price, source)
-        VALUES (?, ?, ?, ?, 'CUSTOMER')
+        INSERT INTO order_items (order_id, menu_item_id, quantity, price, discount, source)
+        VALUES (?, ?, ?, ?, ?, 'CUSTOMER')
     ");
 
     foreach ($items as $it) {
         $menuId = (int)($it['id'] ?? 0);
         $qty    = (int)($it['qty'] ?? 0);
         $price  = (float)($it['price'] ?? 0);
+        $discount = (float)($it['discount'] ?? 0);
         if ($menuId <= 0 || $qty <= 0 || $price < 0) {
             continue;
         }
-        $insItem->execute([$orderId, $menuId, $qty, $price]);
+        $insItem->execute([$orderId, $menuId, $qty, $price, $discount]);
     }
 
     $pdo->commit();

@@ -46,12 +46,25 @@ try {
     // Compute total
     $total = 0;
     foreach ($items as $it) {
-        $price = (float)($it['price'] ?? 0);
-        $qty   = (int)($it['quantity'] ?? 0);
+        $price = isset($it['price']) ? (float)$it['price'] : 0.0;
+        $discount = isset($it['discount']) ? (float)$it['discount'] : 0.0;
+        $qty = isset($it['quantity']) ? (float)$it['quantity'] : 0.0;
         if ($qty <= 0 || $price < 0) {
             continue;
         }
-        $total += $price * $qty;
+
+        if (isset($it['unit_price'])) {
+            $unitPrice = (float)$it['unit_price'];
+        } elseif ($discount > 0) {
+            $unitPrice = $price - ($price * ($discount / 100));
+        } else {
+            $unitPrice = $price;
+        }
+
+        $unitPrice = round($unitPrice, 2);
+        if ($unitPrice < 0) continue;
+
+        $total += $unitPrice * $qty;
     }
 
     if ($total <= 0) {

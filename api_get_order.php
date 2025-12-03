@@ -57,6 +57,7 @@ try {
                oi.menu_item_id,
                oi.quantity,
                oi.price,
+               oi.discount,
                oi.source,
                m.name
         FROM order_items oi

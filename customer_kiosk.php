@@ -255,7 +255,12 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="product-body">
                                     <div class="product-name"><?= htmlspecialchars($p['name'] ?? '') ?></div>
                                     <div class="product-price mb-2">
-                                        ₱<?= number_format((float)$p['price'], 2) ?>
+                                        Regular ₱<?= number_format((float)$p['price'],2) ?>
+                                    </div>
+                                    <div class="product-price mb-2">
+                                    <?php if(!empty($p['discount']) && (float)$p['discount'] > 0): ?>  
+                                        Discounted ₱<?= number_format((float)$p['price'] * (float)$p['discount'] / 100,2) ?>
+                                    <?php endif; ?>
                                     </div>
                                     <div class="mt-auto d-grid">
                                         <button class="btn btn-sm btn-success"
@@ -263,7 +268,8 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <?= (int)$p['id'] ?>,
                                                     '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
                                                     <?= (float)$p['price'] ?>,
-                                                    '<?= htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES) ?>'
+                                                    '<?= htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES) ?>',
+                                                    <?=  !empty($p['discount']) ? (float)$p['discount'] : 0 ?>
                                                 )">
                                             Add to Order
                                         </button>
@@ -387,10 +393,10 @@ function filterCategory(catId) {
     });
 }
 
-function addToCart(id, name, price, category) {
+function addToCart(id, name, price, category, discount) {
     id = String(id);
     if (!cart[id]) {
-        cart[id] = {id: id, name: name, price: parseFloat(price), qty: 0, category: category};
+        cart[id] = {id: id, name: name, price: parseFloat(price), discount: parseFloat(discount), qty: 0, category: category};
     }
     cart[id].qty++;
     updateCartUI();
@@ -405,7 +411,14 @@ function updateCartUI() {
     Object.values(cart).forEach(item => {
         if (item.qty <= 0) return;
         totalQty += item.qty;
-        totalAmount += item.qty * item.price;
+
+        let unitPrice = item.price;
+        if (item.discount > 0) {
+            const discountAmount = item.price * (item.discount / 100);
+            unitPrice = item.price - discountAmount;
+
+        } 
+        totalAmount += unitPrice * item.qty;
 
         const pill = document.createElement('div');
         pill.className = 'cart-pill';
@@ -438,7 +451,14 @@ function renderCartModal() {
             </tr>`;
     } else {
         items.forEach(item => {
-            const sub = item.price * item.qty;
+// Discount Spot
+            let unitPrice = item.price;
+            if (item.discount > 0) {
+                const discountAmount = item.price * (item.discount / 100);
+                unitPrice = item.price - discountAmount;
+
+            } 
+            const sub = unitPrice * item.qty;
             totalAmount += sub;
 
             const tr = document.createElement('tr');
@@ -452,8 +472,8 @@ function renderCartModal() {
                            style="width:70px;"
                            onchange="changeCartQty('${item.id}', this.value)">
                 </td>
-                <td class="text-end">₱${item.price.toFixed(2)}</td>
-                <td class="text-end">₱${sub.toFixed(2)}</td>
+                <td class="text-end">₱${unitPrice.toFixed(2)}</td>
+                <td class="text-end">₱${totalAmount.toFixed(2)}</td>
                 <td class="text-end">
                     <button type="button"
                             class="btn btn-sm btn-outline-danger"
@@ -499,7 +519,8 @@ function submitOrder() {
     const payload = items.map(i => ({
         id: i.id,
         qty: i.qty,
-        price: i.price
+        price: i.price,
+        discount: i.discount
     }));
 
     const fd = new FormData();
