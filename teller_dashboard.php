@@ -628,7 +628,7 @@ function renderOrderItems() {
             </td>
             <td class="text-end">₱${item.price.toFixed(2)}</td>
             <td class="text-end">${item.discount > 0 ? item.discount.toFixed(2) + '%' : '-'}</td>
-            <td class="text-end">₱${total.toFixed(2)}</td>
+            <td class="text-end">₱${subtotal.toFixed(2)}</td>
             <td>${item.source === 'TELLER'
                 ? '<span class="badge bg-info">Teller</span>'
                 : '<span class="badge bg-secondary">Customer</span>'}</td>

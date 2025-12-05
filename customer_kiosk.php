@@ -259,7 +259,7 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                     </div>
                                     <div class="product-price mb-2">
                                     <?php if(!empty($p['discount']) && (float)$p['discount'] > 0): ?>  
-                                        Discounted ₱<?= number_format((float)$p['price'] * (float)$p['discount'] / 100,2) ?>
+                                        Discounted ₱<?= number_format((float)$p['price'] - $p['price'] * (float)$p['discount'] / 100,2) ?>
                                     <?php endif; ?>
                                     </div>
                                     <div class="mt-auto d-grid">
