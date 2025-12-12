@@ -17,8 +17,10 @@ $catStmt = $pdo->query("
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all active menu items (with category)
-$itemStmt = $pdo->query("
-    SELECT m.id, m.name, m.price, m.discount, m.image_path, c.name AS category_name, c.id AS category_id
+$itemStmt = $pdo->query(
+// Updated query to include stock and discount (By: Adrian Aldiano) 
+    "
+    SELECT m.id, m.name, m.price, m.stock, m.discount, m.image_path, c.name AS category_name, c.id AS category_id
     FROM menu_items m
     LEFT JOIN product_categories c ON c.id = m.category_id
     WHERE m.is_active = 1
@@ -112,7 +114,7 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         }
-
+/* CSS for Discount Ribbon */
         .discount-ribbon {
         position: absolute;
         top: 1.8rem;
@@ -125,7 +127,21 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         font-weight: 700;
-        }   
+        } 
+/* CSS for Stock Ribbon */
+        .stock-ribbon {
+        position: absolute;
+        top: 1.8rem;
+        right: -0.3rem;
+        background: #f08a03ff;
+        color: #f9fafb;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px 0 0 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        }     
 
         /* Sticky footer cart */
         .cart-footer {
@@ -229,20 +245,29 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="row g-3" id="productsContainer">
                     <?php foreach ($items as $p): ?>
                         <div class="col-sm-6 col-md-4 col-lg-3 product-card-wrapper"
-                             data-category-id="<?= (int)($p['category_id'] ?? 0) ?>">
+                                data-category-id="<?= (int)($p['category_id'] ?? 0) ?>"
+                                data-stock="<?= (int)$p['stock'] ?>"
+                                id="product_<?= (int)$p['id'] ?>">
                             <div class="product-card">
-                    <!-- RIBBON COPY FOR DISCOUNT -->
-                                <?php if (!empty($p['category_name'])): ?>
+                                <?php if (!empty($p['category_name']) && (int)$p['stock'] > 0): ?>
                                 <div class="category-ribbon">
                                     <?= htmlspecialchars($p['category_name']) ?>
                                 </div>
                                 <?php endif; ?>
-                    <!-- ACTUAL DISCOUNT RIBBON (By; Adrian Aldiano) -->
-                                <?php if (!empty($p['discount'])&& (float)$p['discount'] > 0): ?>
+<!-- DISCOUNT RIBBON (By: Adrian Aldiano) -->
+                                <?php if (!empty($p['discount']) && (float)$p['discount'] > 0 && (int)$p['stock'] >= 0): ?>
                                 <div class="discount-ribbon">
                                     <?= number_format((float)$p['discount'],0 ) ?>% OFF
                                 </div>
                                 <?php endif; ?>
+<!-- STOCK RIBBON (By: Adrian Aldiano) -->
+                                <?php if ((int)$p['stock'] <= 0): ?>
+                                <div class="stock-ribbon">
+                                    OUT OF STOCK
+                                </div>
+                                <?php endif; ?>
+
+
                                 <?php if (!empty($p['image_path']) && file_exists($p['image_path'])): ?>
                                     <img src="<?= htmlspecialchars($p['image_path']) ?>"
                                          class="product-img"
@@ -257,22 +282,33 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="product-price mb-2">
                                         Regular ₱<?= number_format((float)$p['price'],2) ?>
                                     </div>
+<!-- Added visible discounted price for items with discount (By: Adrian Aldiano) -->
                                     <div class="product-price mb-2">
-                                    <?php if(!empty($p['discount']) && (float)$p['discount'] > 0): ?>  
+                                    <?php if(!empty($p['discount']) && (float)$p['discount'] > 0 && (int)$p['stock'] > 0): ?>  
                                         Discounted ₱<?= number_format((float)$p['price'] - $p['price'] * (float)$p['discount'] / 100,2) ?>
                                     <?php endif; ?>
                                     </div>
                                     <div class="mt-auto d-grid">
+                                        <?php if ((int)$p['stock'] > 0): ?>
                                         <button class="btn btn-sm btn-success"
                                                 onclick="addToCart(
                                                     <?= (int)$p['id'] ?>,
                                                     '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
                                                     <?= (float)$p['price'] ?>,
                                                     '<?= htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES) ?>',
+// Added stock and discount parameters in addToCart function (By: Adrian Aldiano)
+                                                    <?= (float)$p['stock'] ?>,
                                                     <?=  !empty($p['discount']) ? (float)$p['discount'] : 0 ?>
                                                 )">
                                             Add to Order
                                         </button>
+<!-- Added condition for Out of Stock button (By: Adrian Aldiano) -->
+                                        <?php endif; ?>
+                                        <?php if ((int)$p['stock'] <= 0): ?>
+                                        <button class="btn btn-sm btn-secondary" disabled>
+                                            Out of Stock
+                                        </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -365,6 +401,7 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
 <script>
 let currentCategoryFilter = 'ALL';
 let cart = {}; // id -> {id, name, price, qty, category}
+updateCartUI();
 
 function filterCategory(catId) {
     currentCategoryFilter = catId;
@@ -393,10 +430,11 @@ function filterCategory(catId) {
     });
 }
 
-function addToCart(id, name, price, category, discount) {
+// Added variables stock and discount in addToCart function (By: Adrian Aldiano)
+function addToCart(id, name, price, category, stock, discount) {
     id = String(id);
     if (!cart[id]) {
-        cart[id] = {id: id, name: name, price: parseFloat(price), discount: parseFloat(discount), qty: 0, category: category};
+        cart[id] = {id: id, name: name, price: parseFloat(price), discount: parseFloat(discount), qty: 0, category: category, stock: parseFloat(stock)};
     }
     cart[id].qty++;
     updateCartUI();
@@ -412,6 +450,7 @@ function updateCartUI() {
         if (item.qty <= 0) return;
         totalQty += item.qty;
 
+// Discount Spot for total calculation (By: Adrian Aldiano)
         let unitPrice = item.price;
         if (item.discount > 0) {
             const discountAmount = item.price * (item.discount / 100);
@@ -432,6 +471,54 @@ function updateCartUI() {
 
     // also reflect in modal total if open
     document.getElementById('cartModalTotal').textContent = totalAmount.toFixed(2);
+
+// Update ribbons and button depending on stock (By: Adrian Aldiano)
+    items.forEach(i => {
+    const card = document.getElementById(`product_${i.id}`);
+    if (!card) return;
+
+    // Compute new stock
+    const oldStock = parseInt(card.dataset.stock);
+    const newStock = Math.max(oldStock - i.qty, 0);
+    card.dataset.stock = newStock;
+
+    // Update button
+    const btn = card.querySelector('button.btn-success');
+    if (btn) {
+        if (newStock <= 0) {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-secondary');
+            btn.disabled = true;
+            btn.textContent = "Out of Stock";
+        }
+    }
+
+    // Update ribbons
+    const categoryRibbon = card.querySelector('.category-ribbon');
+    const discountRibbon = card.querySelector('.discount-ribbon');
+    const stockRibbon    = card.querySelector('.stock-ribbon');
+
+    // Hide category ribbon when stock = 0
+    if (categoryRibbon) {
+        categoryRibbon.style.display = newStock > 0 ? 'block' : 'none';
+    }
+
+    // Hide discount ribbon if stock = 0?
+    if (discountRibbon) {
+        discountRibbon.style.display = newStock > 0 ? 'block' : 'none';
+    }
+
+    // Show stock ribbon if out of stock
+    if (stockRibbon) {
+        stockRibbon.style.display = newStock <= 0 ? 'block' : 'none';
+    } else if (newStock <= 0) {
+        // Create ribbon dynamically
+        const ribbon = document.createElement('div');
+        ribbon.className = 'stock-ribbon';
+        ribbon.textContent = "OUT OF STOCK";
+        card.appendChild(ribbon);
+    }
+});
 }
 
 // Renders items inside the modal
@@ -451,7 +538,7 @@ function renderCartModal() {
             </tr>`;
     } else {
         items.forEach(item => {
-// Discount Spot
+// Discount Spot for calculation (By: Adrian Aldiano)
             let unitPrice = item.price;
             if (item.discount > 0) {
                 const discountAmount = item.price * (item.discount / 100);
@@ -472,6 +559,7 @@ function renderCartModal() {
                            style="width:70px;"
                            onchange="changeCartQty('${item.id}', this.value)">
                 </td>
+// Adjusted Menu_item price and Total to fit discount items (By: Adrian Aldiano)
                 <td class="text-end">₱${unitPrice.toFixed(2)}</td>
                 <td class="text-end">₱${totalAmount.toFixed(2)}</td>
                 <td class="text-end">
@@ -515,12 +603,12 @@ function removeFromCart(id) {
 function submitOrder() {
     const items = Object.values(cart).filter(i => i.qty > 0);
     if (!items.length) return;
-
+// Added discount into submitOrder function payload (By: Adrian Aldiano)
     const payload = items.map(i => ({
         id: i.id,
         qty: i.qty,
         price: i.price,
-        discount: i.discount
+        discount: i.discount,
     }));
 
     const fd = new FormData();

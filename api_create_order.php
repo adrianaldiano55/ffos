@@ -81,6 +81,16 @@ try {
             continue;
         }
         $insItem->execute([$orderId, $menuId, $qty, $price, $discount]);
+        $updStock = $pdo->prepare("
+        UPDATE menu_items
+        SET stock = GREATEST(stock - :qty, 0)
+        WHERE id = :id
+        ");
+
+        $updStock->execute([
+            ':qty' => $qty,
+            ':id'  => $menuId
+        ]);
     }
 
     $pdo->commit();
