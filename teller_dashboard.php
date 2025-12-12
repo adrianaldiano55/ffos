@@ -20,7 +20,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Products for teller to add to orders
 $prodStmt = $pdo->query("
-    SELECT id, name, price, discount, image_path
+    SELECT id, name, price, stock, discount, image_path
     FROM menu_items
     WHERE is_active = 1
     ORDER BY name
@@ -277,7 +277,9 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <th>Product</th>
                                     <th class="text-end">Price</th>
+<!-- Added Discount and Stock table headers (By: Adrian Aldiano) -->
                                     <th class="text-end">Discount</th>
+                                    <th class="text-end">Stock</th>
                                     <th style="width:80px;" class="text-end">Action</th>
                                 </tr>
                                 </thead>
@@ -288,7 +290,11 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="fw-semibold"><?= htmlspecialchars($p['name'] ?? '') ?></div>
                                         </td>
                                         <td class="text-end">₱<?= number_format((float)$p['price'], 2) ?></td>
+<!-- Added Discount and Stock count per item (By; Adrian Aldiano) -->
                                         <td class="text-end"><?= !empty($p['discount']) ? number_format((float)$p['discount'], 2) . '%' : '-' ?></td>
+                                        <td class="text-end"><?= (int)$p['stock'] ?></td>
+<!-- Added parameters for Out of Stock/ In Stock button-->
+                                    <?php if ((int)$p['stock'] > 0): ?>
                                         <td class="text-end">
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-primary"
@@ -301,11 +307,19 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                                 Add
                                             </button>
                                         </td>
-                                    </tr>
+                                    <?php else: ?>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    disabled>
+                                                Out of Stock
+                                            </button>
+                                        </td>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                                 <?php if (!$menuItems): ?>
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted py-2">
+                                        <td colspan="4" class="text-center text-muted py-2">
                                             No products configured.
                                         </td>
                                     </tr>
@@ -366,6 +380,16 @@ let currentOrderSeq = '';
 let orderItems = []; // {id?, menu_item_id, name, price, qty, source}
 let currentStatusFilter = 'ALL';
 let currentOrderStatus = 'UNPAID';
+
+// Added Menu Stock tracking (By: Adrian Aldiano)
+let menuStock = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize menuStock from PHP data
+    <?php foreach ($menuItems as $p): ?>
+        menuStock[<?= (int)$p['id'] ?>] = <?= (int)$p['stock'] ?>;
+    <?php endforeach; ?>
+});
 
 // WebSocket variable
 let ws = null;
@@ -666,6 +690,12 @@ function removeOrderItem(index) {
 }
 
 function tellerAddItem(menuItemId, name, price, discount) {
+// Added Out of Stock (By: Adrian Aldiano)
+    if (!menuStock[menuItemId] || menuStock[menuItemId] <= 0) {
+        alert('Out of stock!');
+        return;
+    }
+
     price = parseFloat(price);
     discount = parseFloat(discount) || 0;
     const existingIndex = orderItems.findIndex(i => i.menu_item_id === menuItemId && i.source === 'TELLER');
@@ -682,7 +712,59 @@ function tellerAddItem(menuItemId, name, price, discount) {
             source: 'TELLER'
         });
     }
+// Reduce Temporary Stock (By: Adrian Aldiano)
+    menuStock[menuItemId]--;
+
     renderOrderItems();
+    renderMenuStock(); 
+}
+
+// Added function to restore Temporary Stock on remove (By: Adrian Aldiano)
+function removeOrderItem(index) {
+    if (!orderItems[index]) return;
+
+    const item = orderItems[index];
+    if (item.source === 'TELLER') {
+        menuStock[item.menu_item_id] += item.qty; // restore stock
+    }
+
+    orderItems.splice(index, 1);
+    renderOrderItems();
+    renderMenuStock(); // update buttons
+}
+
+// Added function to update Buttons and Text based on stock (By: Adrian Aldiano)
+function renderMenuStock() {
+    // Loop through all product rows
+    document.querySelectorAll('#orderModal tbody tr').forEach(tr => {
+        // Find the Add button
+        const btn = tr.querySelector('button[onclick^="tellerAddItem"]');
+        if (!btn) return;
+
+        // Extract menuItemId from onclick
+        const match = btn.getAttribute('onclick').match(/\d+/);
+        if (!match) return;
+        const menuItemId = parseInt(match[0], 10);
+
+        // Update Stock cell
+        const stockCell = tr.querySelector('td.text-end:nth-child(4)');
+        if (stockCell) {
+            stockCell.textContent = menuStock[menuItemId];
+        }
+
+        // Update button text & disabled state
+        if (menuStock[menuItemId] > 0) {
+            btn.disabled = false;
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('btn-outline-primary');
+            btn.textContent = 'Add';
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-outline-secondary');
+            btn.textContent = 'Out of Stock';
+        }
+    });
 }
 
 // Cash input formatting with commas

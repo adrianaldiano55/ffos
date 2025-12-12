@@ -26,7 +26,10 @@ $itemStmt = $pdo->query(
     WHERE m.is_active = 1
     ORDER BY c.name, m.name
 ");
+
 $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -399,6 +402,8 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Added Temporary Stock for Customer Add items (By: Adrian Aldiano)
+let tempStock = {}; 
 let currentCategoryFilter = 'ALL';
 let cart = {}; // id -> {id, name, price, qty, category}
 updateCartUI();
@@ -429,14 +434,63 @@ function filterCategory(catId) {
         }
     });
 }
+// Added update ProductUI function when Temporary Stock changes (By: Adrian Aldiano)
+function updateProductUI(id) {
+    const card = document.getElementById(`product_${id}`);
+    if (!card) return;
+
+    const addBtn = card.querySelector('.product-body .btn');
+    const stockRibbon = card.querySelector('.stock-ribbon');
+
+    const newStock = tempStock[id];
+
+    // Update display
+    card.dataset.stock = newStock;
+
+    if (addBtn) {
+        if (newStock <= 0) {
+            addBtn.disabled = true;
+            addBtn.classList.remove("btn-success");
+            addBtn.classList.add("btn-secondary");
+            addBtn.textContent = "Out of Stock";
+        } else {
+            addBtn.disabled = false;
+            addBtn.classList.add("btn-success");
+            addBtn.classList.remove("btn-secondary");
+            addBtn.textContent = "Add to Order";
+        }
+    }
+
+    if (stockRibbon) {
+        stockRibbon.style.display = newStock <= 0 ? "block" : "none";
+    } else if (newStock <= 0) {
+        const ribbon = document.createElement('div');
+        ribbon.className = "stock-ribbon";
+        ribbon.textContent = "OUT OF STOCK";
+        card.appendChild(ribbon);
+    }
+}
 
 // Added variables stock and discount in addToCart function (By: Adrian Aldiano)
 function addToCart(id, name, price, category, stock, discount) {
     id = String(id);
+
+// Stops Add to Cart when Stock is 0 (By: Adrian Aldiano)
+    if (tempStock[id] <= 0) {
+        return; // Do nothing
+    }
+
+// Reduces Temporary Stock (By: Adrian Aldiano)
+    tempStock[id]--;
+
+
+// Added Discount parameter in Cart (By: Adrian Aldiano)
     if (!cart[id]) {
         cart[id] = {id: id, name: name, price: parseFloat(price), discount: parseFloat(discount), qty: 0, category: category, stock: parseFloat(stock)};
     }
     cart[id].qty++;
+// Added productUI update from Temporary Stock (By: Adrian Aldiano)
+    updateProductUI(id);
     updateCartUI();
 }
 
@@ -449,6 +503,8 @@ function updateCartUI() {
     Object.values(cart).forEach(item => {
         if (item.qty <= 0) return;
         totalQty += item.qty;
+// Added UpdateProdUI function on each cart Item (By: Adrian Aldiano)
+        updateProductUI(item.id);
 
 // Discount Spot for total calculation (By: Adrian Aldiano)
         let unitPrice = item.price;
@@ -473,13 +529,13 @@ function updateCartUI() {
     document.getElementById('cartModalTotal').textContent = totalAmount.toFixed(2);
 
 // Update ribbons and button depending on stock (By: Adrian Aldiano)
-    items.forEach(i => {
+    Object.values(cart).forEach(i => {
     const card = document.getElementById(`product_${i.id}`);
     if (!card) return;
 
-    // Compute new stock
-    const oldStock = parseInt(card.dataset.stock);
-    const newStock = Math.max(oldStock - i.qty, 0);
+// Update stock calculation based on Temporary Stock (By: Adrian Aldiano)
+    const id = i.id;
+    const newStock = tempStock[id];
     card.dataset.stock = newStock;
 
     // Update button
@@ -561,7 +617,7 @@ function renderCartModal() {
                 </td>
 // Adjusted Menu_item price and Total to fit discount items (By: Adrian Aldiano)
                 <td class="text-end">₱${unitPrice.toFixed(2)}</td>
-                <td class="text-end">₱${totalAmount.toFixed(2)}</td>
+                <td class="text-end">₱${sub.toFixed(2)}</td>
                 <td class="text-end">
                     <button type="button"
                             class="btn btn-sm btn-outline-danger"
@@ -593,8 +649,12 @@ function changeCartQty(id, value) {
 function removeFromCart(id) {
     id = String(id);
     if (cart[id]) {
+        tempStock[id] += cart[id].qty;
+// Added Temporary Stock back upon removing from cart (By: Adrian Aldiano)
         delete cart[id];
     }
+// Added Refresh to ProductUI (By: Adrian Aldiano)
+    updateProductUI(id);
     updateCartUI();
     renderCartModal();
 }
@@ -638,6 +698,8 @@ function submitOrder() {
         .catch(() => {
             alert('Network error submitting order.');
         });
+// Added Temporary Stock Reset upon Submit (By: Adrian Aldiano)
+    tempStock = {}; 
 }
 
 function escapeHtml(str) {
@@ -654,6 +716,11 @@ function escapeHtml(str) {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     filterCategory('ALL');
+// Added Temporary Stock Refresh and Initialization (By: Adrian Aldiano)
+    document.querySelectorAll('.product-card-wrapper').forEach(card => {
+        tempStock[card.id.replace('product_', '')] = parseInt(card.dataset.stock);
+    });
+
     updateCartUI();
 });
 </script>
