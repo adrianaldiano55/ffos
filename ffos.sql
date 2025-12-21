@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 05, 2025 at 03:32 PM
+-- Generation Time: Dec 21, 2025 at 04:38 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,6 +65,7 @@ CREATE TABLE `menu_items` (
   `is_bundle` tinyint(1) NOT NULL DEFAULT 0,
   `name` varchar(100) NOT NULL,
   `price` decimal(10,2) NOT NULL,
+  `stock` int(10) NOT NULL,
   `discount` decimal(10,2) DEFAULT NULL,
   `image_path` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1
@@ -74,34 +75,34 @@ CREATE TABLE `menu_items` (
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `code`, `category_id`, `is_bundle`, `name`, `price`, `discount`, `image_path`, `is_active`) VALUES
-(1, 'BIGMAC', NULL, 0, 'Big Mac Meal', 150.00, NULL, NULL, 0),
-(2, 'MCCHKN', NULL, 0, 'McChicken Meal', 140.00, NULL, NULL, 0),
-(3, 'FRIESL', 3, 0, 'Large Fries', 60.00, 50.00, '', 0),
-(4, 'COKEL', NULL, 0, 'Large Coke', 45.00, NULL, NULL, 0),
-(5, 'wfwqfwq', 1, 0, 'safasf', 51581.00, NULL, 'uploads/prod_692cfa68962f31.90440074.jpg', 0),
-(6, 'dsada', NULL, 1, 'jkanbjksak', 815.00, NULL, NULL, 0),
-(7, 'sada', NULL, 1, 'dasd', 51881.00, NULL, NULL, 0),
-(8, 'ww', 1, 0, 'sda', 242.00, NULL, NULL, 0),
-(9, 'llp', NULL, 1, 'wet', 105.00, NULL, NULL, 0),
-(10, 'tew', NULL, 1, 'tew', 340.00, NULL, NULL, 0),
-(11, 'hhh', NULL, 1, 'n', 45.00, NULL, NULL, 0),
-(12, 'wwrt', 2, 0, 'efawefg', 325325.00, NULL, NULL, 0),
-(27, 'BRG001', 1, 0, 'Classic Cheeseburger', 79.00, NULL, 'images/burger1.jpg', 1),
-(28, 'BRG002', 1, 0, 'Beef BBQ Burger', 99.00, NULL, 'images/burger2.jpg', 1),
-(29, 'BRG003', 1, 0, 'Double Patty Stack', 129.00, NULL, 'images/burger3.jpg', 1),
-(30, 'CHK001', 2, 0, '1-PC Crispy Chicken', 89.00, NULL, 'images/chicken1.jpg', 1),
-(31, 'CHK002', 2, 0, '2-PC Chicken with Rice', 149.00, NULL, 'images/chicken2.jpg', 1),
-(32, 'SDE001', 3, 0, 'Regular Fries', 39.00, 25.00, 'images/fries1.jpg', 1),
-(33, 'SDE002', 3, 0, 'Large Fries', 59.00, NULL, 'images/fries2.jpg', 1),
-(34, 'SDE003', 3, 0, 'Butter Corn Cup', 35.00, NULL, 'images/corn1.jpg', 1),
-(35, 'DRK001', 4, 0, 'Iced Tea', 35.00, NULL, 'images/icedtea.jpg', 1),
-(36, 'DRK002', 4, 0, 'Soft Drink (Soda)', 30.00, NULL, 'images/soda.jpg', 1),
-(37, 'DRK003', 4, 0, 'Bottled Water', 25.00, NULL, 'images/water.jpg', 1),
-(38, 'DST001', 5, 0, 'Vanilla Sundae', 45.00, NULL, 'images/sundae1.jpg', 1),
-(39, 'DST002', 5, 0, 'Choco Sundae', 55.00, NULL, 'images/sundae2.jpg', 1),
-(40, 'DST003', 5, 0, 'Apple Pie', 49.00, NULL, 'images/pie1.jpg', 1),
-(41, 'CHKNGTS', 2, 0, 'Chicken Nuggets', 100.00, NULL, NULL, 1);
+INSERT INTO `menu_items` (`id`, `code`, `category_id`, `is_bundle`, `name`, `price`, `stock`, `discount`, `image_path`, `is_active`) VALUES
+(1, 'BIGMAC', NULL, 0, 'Big Mac Meal', 150.00, 0, NULL, NULL, 0),
+(2, 'MCCHKN', NULL, 0, 'McChicken Meal', 140.00, 0, NULL, NULL, 0),
+(3, 'FRIESL', 3, 0, 'Large Fries', 60.00, 10, 50.00, '', 0),
+(4, 'COKEL', NULL, 0, 'Large Coke', 45.00, 0, NULL, NULL, 0),
+(5, 'wfwqfwq', 1, 0, 'safasf', 51581.00, 0, NULL, 'uploads/prod_692cfa68962f31.90440074.jpg', 0),
+(6, 'dsada', NULL, 1, 'jkanbjksak', 815.00, 0, NULL, NULL, 0),
+(7, 'sada', NULL, 1, 'dasd', 51881.00, 0, NULL, NULL, 0),
+(8, 'ww', 1, 0, 'sda', 242.00, 0, NULL, NULL, 0),
+(9, 'llp', NULL, 1, 'wet', 105.00, 0, NULL, NULL, 0),
+(10, 'tew', NULL, 1, 'tew', 340.00, 0, NULL, NULL, 0),
+(11, 'hhh', NULL, 1, 'n', 45.00, 0, NULL, NULL, 0),
+(12, 'wwrt', 2, 0, 'efawefg', 325325.00, 0, NULL, NULL, 0),
+(27, 'BRG001', 1, 0, 'Classic Cheeseburger', 79.00, 0, NULL, 'images/burger1.jpg', 1),
+(28, 'BRG002', 1, 0, 'Beef BBQ Burger', 99.00, 0, NULL, 'images/burger2.jpg', 1),
+(29, 'BRG003', 1, 0, 'Double Patty Stack', 129.00, 0, NULL, 'images/burger3.jpg', 1),
+(30, 'CHK001', 2, 0, '1-PC Crispy Chicken', 89.00, 0, NULL, 'images/chicken1.jpg', 1),
+(31, 'CHK002', 2, 0, '2-PC Chicken with Rice', 149.00, 0, NULL, 'images/chicken2.jpg', 1),
+(32, 'SDE001', 3, 0, 'Regular Fries', 39.00, 24, 25.00, 'images/fries1.jpg', 1),
+(33, 'SDE002', 3, 0, 'Large Fries', 59.00, 9, 0.00, 'images/fries2.jpg', 1),
+(34, 'SDE003', 3, 0, 'Butter Corn Cup', 35.00, 0, 0.00, 'images/corn1.jpg', 1),
+(35, 'DRK001', 4, 0, 'Iced Tea', 35.00, 0, NULL, 'images/icedtea.jpg', 1),
+(36, 'DRK002', 4, 0, 'Soft Drink (Soda)', 30.00, 0, 0.00, 'images/soda.jpg', 1),
+(37, 'DRK003', 4, 0, 'Bottled Water', 25.00, 0, NULL, 'images/water.jpg', 1),
+(38, 'DST001', 5, 0, 'Vanilla Sundae', 45.00, 0, NULL, 'images/sundae1.jpg', 1),
+(39, 'DST002', 5, 0, 'Choco Sundae', 55.00, 0, NULL, 'images/sundae2.jpg', 1),
+(40, 'DST003', 5, 0, 'Apple Pie', 49.00, 0, NULL, 'images/pie1.jpg', 1),
+(41, 'CHKNGTS', 2, 0, 'Chicken Nuggets', 100.00, 0, NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -211,7 +212,21 @@ INSERT INTO `orders` (`id`, `terminal_id`, `teller_terminal_id`, `total_amount`,
 (81, 1, 2, 125.00, 5555.00, 5430.00, 'IN_PROCESS', '2025-12-01 01:58:53', '2025-12-01 01:58:48', '2025-12-01 01:58:53', 80),
 (82, 1, NULL, 180.00, 0.00, 0.00, 'UNPAID', NULL, '2025-12-01 01:58:56', '2025-12-01 01:58:56', 81),
 (83, 1, 2, 87.75, 100.00, 12.25, 'CLAIMED', '2025-12-05 07:02:26', '2025-12-05 07:01:36', '2025-12-05 07:02:46', 1),
-(84, 1, NULL, 58.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-05 07:18:13', '2025-12-05 07:18:13', 2);
+(84, 1, NULL, 58.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-05 07:18:13', '2025-12-05 07:18:13', 2),
+(85, 1, NULL, 58.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-06 22:10:01', '2025-12-06 22:10:01', 1),
+(86, 1, NULL, 58.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-06 22:10:08', '2025-12-06 22:10:08', 2),
+(87, 1, NULL, 29.25, 0.00, 0.00, 'UNPAID', NULL, '2025-12-06 22:31:26', '2025-12-06 22:31:26', 3),
+(88, 1, NULL, 58.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-06 22:31:30', '2025-12-06 22:31:30', 4),
+(89, 1, NULL, 35.00, 0.00, 0.00, 'UNPAID', NULL, '2025-12-07 02:38:53', '2025-12-07 02:38:53', 5),
+(90, 1, 2, 59.25, 100.00, 40.75, 'IN_PROCESS', '2025-12-09 22:33:14', '2025-12-09 22:29:41', '2025-12-09 22:33:14', 1),
+(91, 1, NULL, 292.50, 0.00, 0.00, 'UNPAID', NULL, '2025-12-09 22:29:48', '2025-12-09 22:29:48', 2),
+(92, 1, NULL, 29.25, 0.00, 0.00, 'UNPAID', NULL, '2025-12-09 22:29:53', '2025-12-09 22:29:53', 3),
+(93, 1, NULL, 210.00, 0.00, 0.00, 'UNPAID', NULL, '2025-12-11 20:43:02', '2025-12-11 20:43:02', 1),
+(94, 1, 2, 118.50, 200.00, 81.50, 'IN_PROCESS', '2025-12-11 21:31:45', '2025-12-11 20:43:06', '2025-12-11 21:31:45', 2),
+(95, 1, 2, 292.50, 1000.00, 707.50, 'IN_PROCESS', '2025-12-11 21:24:36', '2025-12-11 21:24:05', '2025-12-11 21:24:36', 3),
+(96, 1, NULL, 117.00, 0.00, 0.00, 'UNPAID', NULL, '2025-12-15 02:51:10', '2025-12-15 02:51:10', 1),
+(97, 1, NULL, 88.25, 0.00, 0.00, 'UNPAID', NULL, '2025-12-18 00:36:35', '2025-12-18 00:36:35', 1),
+(98, 1, NULL, 98.00, 0.00, 0.00, 'UNPAID', NULL, '2025-12-18 00:36:42', '2025-12-18 00:36:42', 2);
 
 -- --------------------------------------------------------
 
@@ -428,7 +443,26 @@ INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `price`
 (360, 82, 36, 6, 30.00, NULL, 'CUSTOMER', 0.00),
 (362, 83, 32, 2, 39.00, NULL, 'CUSTOMER', 0.00),
 (363, 83, 32, 1, 39.00, NULL, 'TELLER', 0.00),
-(364, 84, 32, 2, 39.00, 25.00, 'CUSTOMER', 0.00);
+(364, 84, 32, 2, 39.00, 25.00, 'CUSTOMER', 0.00),
+(365, 85, 32, 2, 39.00, 25.00, 'CUSTOMER', 0.00),
+(366, 86, 32, 2, 39.00, 25.00, 'CUSTOMER', 0.00),
+(367, 87, 32, 1, 39.00, 25.00, 'CUSTOMER', 0.00),
+(368, 88, 32, 2, 39.00, 25.00, 'CUSTOMER', 0.00),
+(369, 89, 34, 1, 35.00, 0.00, 'CUSTOMER', 0.00),
+(372, 91, 32, 10, 39.00, 25.00, 'CUSTOMER', 0.00),
+(373, 92, 32, 1, 39.00, 25.00, 'CUSTOMER', 0.00),
+(374, 90, 32, 1, 39.00, NULL, 'CUSTOMER', 0.00),
+(375, 90, 36, 1, 30.00, NULL, 'CUSTOMER', 0.00),
+(376, 93, 36, 7, 30.00, 0.00, 'CUSTOMER', 0.00),
+(379, 95, 32, 6, 39.00, NULL, 'CUSTOMER', 0.00),
+(380, 95, 32, 4, 39.00, NULL, 'TELLER', 0.00),
+(381, 94, 36, 2, 30.00, NULL, 'CUSTOMER', 0.00),
+(382, 94, 32, 2, 39.00, NULL, 'TELLER', 0.00),
+(383, 96, 32, 4, 39.00, 25.00, 'CUSTOMER', 0.00),
+(384, 97, 32, 1, 39.00, 25.00, 'CUSTOMER', 0.00),
+(385, 97, 33, 1, 59.00, 0.00, 'CUSTOMER', 0.00),
+(386, 98, 32, 1, 39.00, NULL, 'CUSTOMER', 0.00),
+(387, 98, 33, 1, 59.00, NULL, 'CUSTOMER', 0.00);
 
 -- --------------------------------------------------------
 
@@ -560,13 +594,13 @@ ALTER TABLE `menu_items`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=365;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=388;
 
 --
 -- AUTO_INCREMENT for table `product_categories`
