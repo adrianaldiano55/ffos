@@ -67,19 +67,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $code       = trim($_POST['product_code'] ?? '');
         $price      = (float)($_POST['product_price'] ?? 0);
         $categoryId = (int)($_POST['product_category_id'] ?? 0);
-// Create discount variable (By; Adrian Aldiano)
-// Create stock variable (By; Adrian Aldiano)
+// Create discount variable 
+// Create stock variable 
         $discount   = $_POST['product_discount'] ?? null;
         $stock      = (float)($_POST['product_stock'] ?? 0);
         if ($name !== '' && $code !== '' && $price > 0 && $categoryId > 0) {
             $imagePath = handle_image_upload('product_image');
-// Insert discount into variables and inserted into statement (By; Adrian Aldiano)
-// Insert stock into variables and inserted into statement (By; Adrian Aldiano)
+// Insert discount into variables and inserted into statement 
+// Insert stock into variables and inserted into statement 
             $stmt = $pdo->prepare(
                 "INSERT INTO menu_items (code, category_id, is_bundle, name, price, stock, discount, image_path, is_active)
                  VALUES (?, ?, 0, ?, ?, ?, ?, ?, 1)"
             );
-// Added variables $stock and $discount into the statement (By; Adrian Aldiano)
+// Added variables $stock and $discount into the statement 
             $stmt->execute([$code, $categoryId, $name, $price, $stock, $discount, $imagePath]);
         }
     }
@@ -91,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $code       = trim($_POST['product_code'] ?? '');
         $price      = (float)($_POST['product_price'] ?? 0);
         $categoryId = (int)($_POST['product_category_id'] ?? 0);
-// Insert discount into variables and inserted into statement (By; Adrian Aldiano)
-// Insert stock into variables and inserted into statement (By; Adrian Aldiano)
+// Insert discount into variables and inserted into statement 
+// Insert stock into variables and inserted into statement 
         $discount   = $_POST['product_discount'] ?? null;
         $stock      = (float)($_POST['product_stock'] ?? 0);
         $existing   = $_POST['existing_product_image'] ?? null;
@@ -105,11 +105,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare(
                 "UPDATE menu_items
--- Inserted discount into variables and inserted into statement (By; Adrian Aldiano) 
+-- Inserted discount into variables and inserted into statement 
                  SET code = ?, category_id = ?, name = ?, price = ?, stock = ?, discount = ?, image_path = ?
                  WHERE id = ? AND is_bundle = 0"
             );
-// Added variables $stock and $discount into the statement (By; Adrian Aldiano)
+// Added variables $stock and $discount into the statement 
             $stmt->execute([$code, $categoryId, $name, $price, $stock, $discount, $imagePath, $id]);
         }
     }
@@ -227,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $categories = $pdo->query("SELECT id, name FROM product_categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
 $products   = $pdo->query(
-// SELECT menu_item stock and discount (By: Adrian Aldiano)
+// SELECT menu_item stock and discount 
     "SELECT m.id, m.code, m.name, m.price, m.stock, m.discount, m.is_bundle, m.image_path,
             m.category_id,
             c.name AS category_name
@@ -347,7 +347,7 @@ $stats = [
                                 <th>Code</th>
                                 <th>Category</th>
                                 <th class="text-end">Price</th>
-<!-- Created Table Header for Discount and Stock (By: Adrian Aldiano) -->
+<!-- Created Table Header for Discount and Stock -->
                                 <th class="text-end">Stock</th>
                                 <th class="text-end">Discount</th>
                                 <th style="width:80px;" class="text-end">Actions</th>
@@ -368,7 +368,7 @@ $stats = [
                                     <td><span class="badge bg-secondary"><?= htmlspecialchars($p['code'] ?? '') ?></span></td>
                                     <td><?= htmlspecialchars($p['category_name'] ?? '') ?></td>
                                     <td class="text-end">₱<?= number_format((float)$p['price'], 2) ?></td>
-<!-- Added discount and stock values for each Product (By: Adrian Aldiano) -->
+<!-- Added discount and stock values for each Product-->
                                     <td class="text-end"><?= (int)$p['stock'] ?></td>
                                     <td class="text-end"><?= !empty($p['discount']) ? number_format((float)$p['discount'], 2) . '%' : '-' ?> </td>
                                     <td class="text-end">
@@ -378,7 +378,7 @@ $stats = [
                                                     '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
                                                     '<?= htmlspecialchars($p['code'] ?? '', ENT_QUOTES) ?>',
                                                     '<?= htmlspecialchars((string)($p['price'] ?? ''), ENT_QUOTES) ?>',
-// Added discount and stock parameters in openProductModal (By: Adrian Aldiano)
+// Added discount and stock parameters in openProductModal
                                                     '<?= htmlspecialchars((string)($p['stock'] ?? ''), ENT_QUOTES) ?>',
                                                     '<?= (float)($p['discount'] ?? 0) ?>',
                                                     <?= (int)($p['category_id'] ?? 0) ?>,
@@ -596,7 +596,7 @@ $stats = [
                                    class="form-control" required>
                         </div>
                     </div>
-<!-- Stock Modal (By: Adrian Aldiano)-->
+<!-- Stock Modal-->
                     <div class="mb-2">
                         <label class="form-label mb-1">
                             Stock <span class="text-danger"></span>
@@ -607,7 +607,7 @@ $stats = [
                                    class="form-control">
                         </div>
                     </div>
-<!-- Discount Modal (By: Adrian Aldiano)-->
+<!-- Discount Modal-->
                     <div class="mb-2">
                         <label class="form-label mb-1">
                             Discount <span class="text-danger"></span>
@@ -844,7 +844,7 @@ function openCategoryModal(mode, id = null, name = '') {
 }
 
 // --- Product modal open ---
-// Added discount and stock parameters in openProductModal function (By: Adrian Aldiano)
+// Added discount and stock parameters in openProductModal function 
 function openProductModal(mode, id = null, name = '', code = '', price = '', stock = '', discount = '', catId = 0, imgPath = '') {
     const title = document.getElementById('productModalTitle');
     const action = document.getElementById('productAction');
@@ -852,8 +852,8 @@ function openProductModal(mode, id = null, name = '', code = '', price = '', sto
     const nameInp = document.getElementById('productName');
     const codeInp = document.getElementById('productCode');
     const priceInp = document.getElementById('productPrice');
-    const stockInp = document.getElementById('productStock'); // Stock field (By: Adrian Aldiano)
-    const discInp = document.getElementById('productDiscount'); // Discount field (By: Adrian Aldiano)
+    const stockInp = document.getElementById('productStock'); // Stock field
+    const discInp = document.getElementById('productDiscount'); // Discount field 
     const catSel = document.getElementById('productCategoryId');
     const existingImg = document.getElementById('productExistingImage');
     const previewImg = document.getElementById('productPreviewImg');
@@ -866,8 +866,8 @@ function openProductModal(mode, id = null, name = '', code = '', price = '', sto
         nameInp.value = '';
         codeInp.value = '';
         priceInp.value = '';
-        stockInp.value = ''; // Stock field (By: Adrian Aldiano)
-        discInp.value = ''; // Discount field (By: Adrian Aldiano)
+        stockInp.value = ''; // Stock field 
+        discInp.value = ''; // Discount field 
         catSel.value = '';
         existingImg.value = '';
         previewImg.style.display = 'none';
@@ -879,8 +879,8 @@ function openProductModal(mode, id = null, name = '', code = '', price = '', sto
         nameInp.value = name || '';
         codeInp.value = code || '';
         priceInp.value = price || '';
-        stockInp.value = stock || ''; // Stock field (By: Adrian Aldiano)
-        discInp.value = discount || ''; // Discount field (By: Adrian Aldiano)
+        stockInp.value = stock || ''; // Stock field
+        discInp.value = discount || ''; // Discount field 
         catSel.value = catId || '';
         existingImg.value = imgPath || '';
         if (imgPath) {

@@ -277,7 +277,7 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <th>Product</th>
                                     <th class="text-end">Price</th>
-<!-- Added Discount and Stock table headers (By: Adrian Aldiano) -->
+<!-- Added Discount and Stock table headers-->
                                     <th class="text-end">Discount</th>
                                     <th class="text-end">Stock</th>
                                     <th style="width:80px;" class="text-end">Action</th>
@@ -290,7 +290,7 @@ $menuItems = $prodStmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="fw-semibold"><?= htmlspecialchars($p['name'] ?? '') ?></div>
                                         </td>
                                         <td class="text-end">₱<?= number_format((float)$p['price'], 2) ?></td>
-<!-- Added Discount and Stock count per item (By; Adrian Aldiano) -->
+<!-- Added Discount and Stock count per item-->
                                         <td class="text-end"><?= !empty($p['discount']) ? number_format((float)$p['discount'], 2) . '%' : '-' ?></td>
                                         <td class="text-end"><?= (int)$p['stock'] ?></td>
 <!-- Added parameters for Out of Stock/ In Stock button-->
@@ -381,7 +381,7 @@ let orderItems = []; // {id?, menu_item_id, name, price, qty, source}
 let currentStatusFilter = 'ALL';
 let currentOrderStatus = 'UNPAID';
 
-// Added Menu Stock tracking (By: Adrian Aldiano)
+// Added Menu Stock tracking
 let menuStock = {};
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -690,7 +690,7 @@ function removeOrderItem(index) {
 }
 
 function tellerAddItem(menuItemId, name, price, discount) {
-// Added Out of Stock (By: Adrian Aldiano)
+// Added Out of Stock
     if (!menuStock[menuItemId] || menuStock[menuItemId] <= 0) {
         alert('Out of stock!');
         return;
@@ -712,14 +712,14 @@ function tellerAddItem(menuItemId, name, price, discount) {
             source: 'TELLER'
         });
     }
-// Reduce Temporary Stock (By: Adrian Aldiano)
+// Reduce Temporary Stock
     menuStock[menuItemId]--;
 
     renderOrderItems();
     renderMenuStock(); 
 }
 
-// Added function to restore Temporary Stock on remove (By: Adrian Aldiano)
+// Added function to restore Temporary Stock on remove
 function removeOrderItem(index) {
     if (!orderItems[index]) return;
 
@@ -733,7 +733,7 @@ function removeOrderItem(index) {
     renderMenuStock(); // update buttons
 }
 
-// Added function to update Buttons and Text based on stock (By: Adrian Aldiano)
+// Added function to update Buttons and Text based on stock
 function renderMenuStock() {
     // Loop through all product rows
     document.querySelectorAll('#orderModal tbody tr').forEach(tr => {

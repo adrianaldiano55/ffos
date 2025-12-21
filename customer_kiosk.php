@@ -18,7 +18,7 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all active menu items (with category)
 $itemStmt = $pdo->query(
-// Updated query to include stock and discount (By: Adrian Aldiano) 
+// Updated query to include stock and discount 
     "
     SELECT m.id, m.name, m.price, m.stock, m.discount, m.image_path, c.name AS category_name, c.id AS category_id
     FROM menu_items m
@@ -257,13 +257,13 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?= htmlspecialchars($p['category_name']) ?>
                                 </div>
                                 <?php endif; ?>
-<!-- DISCOUNT RIBBON (By: Adrian Aldiano) -->
+<!-- DISCOUNT RIBBON-->
                                 <?php if (!empty($p['discount']) && (float)$p['discount'] > 0 && (int)$p['stock'] >= 0): ?>
                                 <div class="discount-ribbon">
                                     <?= number_format((float)$p['discount'],0 ) ?>% OFF
                                 </div>
                                 <?php endif; ?>
-<!-- STOCK RIBBON (By: Adrian Aldiano) -->
+<!-- STOCK RIBBON-->
                                 <?php if ((int)$p['stock'] <= 0): ?>
                                 <div class="stock-ribbon">
                                     OUT OF STOCK
@@ -285,7 +285,7 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="product-price mb-2">
                                         Regular ₱<?= number_format((float)$p['price'],2) ?>
                                     </div>
-<!-- Added visible discounted price for items with discount (By: Adrian Aldiano) -->
+<!-- Added visible discounted price for items with discount-->
                                     <div class="product-price mb-2">
                                     <?php if(!empty($p['discount']) && (float)$p['discount'] > 0 && (int)$p['stock'] > 0): ?>  
                                         Discounted ₱<?= number_format((float)$p['price'] - $p['price'] * (float)$p['discount'] / 100,2) ?>
@@ -299,13 +299,13 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
                                                     '<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>',
                                                     <?= (float)$p['price'] ?>,
                                                     '<?= htmlspecialchars($p['category_name'] ?? '', ENT_QUOTES) ?>',
-// Added stock and discount parameters in addToCart function (By: Adrian Aldiano)
+// Added stock and discount parameters in addToCart function
                                                     <?= (float)$p['stock'] ?>,
                                                     <?=  !empty($p['discount']) ? (float)$p['discount'] : 0 ?>
                                                 )">
                                             Add to Order
                                         </button>
-<!-- Added condition for Out of Stock button (By: Adrian Aldiano) -->
+<!-- Added condition for Out of Stock button-->
                                         <?php endif; ?>
                                         <?php if ((int)$p['stock'] <= 0): ?>
                                         <button class="btn btn-sm btn-secondary" disabled>
@@ -402,7 +402,7 @@ $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Added Temporary Stock for Customer Add items (By: Adrian Aldiano)
+// Added Temporary Stock for Customer Add items
 let tempStock = {}; 
 let currentCategoryFilter = 'ALL';
 let cart = {}; // id -> {id, name, price, qty, category}
@@ -434,7 +434,7 @@ function filterCategory(catId) {
         }
     });
 }
-// Added update ProductUI function when Temporary Stock changes (By: Adrian Aldiano)
+// Added update ProductUI function when Temporary Stock changes
 function updateProductUI(id) {
     const card = document.getElementById(`product_${id}`);
     if (!card) return;
@@ -471,25 +471,25 @@ function updateProductUI(id) {
     }
 }
 
-// Added variables stock and discount in addToCart function (By: Adrian Aldiano)
+// Added variables stock and discount in addToCart function
 function addToCart(id, name, price, category, stock, discount) {
     id = String(id);
 
-// Stops Add to Cart when Stock is 0 (By: Adrian Aldiano)
+// Stops Add to Cart when Stock is 0
     if (tempStock[id] <= 0) {
         return; // Do nothing
     }
 
-// Reduces Temporary Stock (By: Adrian Aldiano)
+// Reduces Temporary Stock
     tempStock[id]--;
 
 
-// Added Discount parameter in Cart (By: Adrian Aldiano)
+// Added Discount parameter in Cart
     if (!cart[id]) {
         cart[id] = {id: id, name: name, price: parseFloat(price), discount: parseFloat(discount), qty: 0, category: category, stock: parseFloat(stock)};
     }
     cart[id].qty++;
-// Added productUI update from Temporary Stock (By: Adrian Aldiano)
+// Added productUI update from Temporary Stock
     updateProductUI(id);
     updateCartUI();
 }
@@ -503,10 +503,10 @@ function updateCartUI() {
     Object.values(cart).forEach(item => {
         if (item.qty <= 0) return;
         totalQty += item.qty;
-// Added UpdateProdUI function on each cart Item (By: Adrian Aldiano)
+// Added UpdateProdUI function on each cart Item
         updateProductUI(item.id);
 
-// Discount Spot for total calculation (By: Adrian Aldiano)
+// Discount Spot for total calculation
         let unitPrice = item.price;
         if (item.discount > 0) {
             const discountAmount = item.price * (item.discount / 100);
@@ -528,12 +528,12 @@ function updateCartUI() {
     // also reflect in modal total if open
     document.getElementById('cartModalTotal').textContent = totalAmount.toFixed(2);
 
-// Update ribbons and button depending on stock (By: Adrian Aldiano)
+// Update ribbons and button depending on stock
     Object.values(cart).forEach(i => {
     const card = document.getElementById(`product_${i.id}`);
     if (!card) return;
 
-// Update stock calculation based on Temporary Stock (By: Adrian Aldiano)
+// Update stock calculation based on Temporary Stock
     const id = i.id;
     const newStock = tempStock[id];
     card.dataset.stock = newStock;
@@ -594,7 +594,7 @@ function renderCartModal() {
             </tr>`;
     } else {
         items.forEach(item => {
-// Discount Spot for calculation (By: Adrian Aldiano)
+// Discount Spot for calculation
             let unitPrice = item.price;
             if (item.discount > 0) {
                 const discountAmount = item.price * (item.discount / 100);
@@ -650,10 +650,10 @@ function removeFromCart(id) {
     id = String(id);
     if (cart[id]) {
         tempStock[id] += cart[id].qty;
-// Added Temporary Stock back upon removing from cart (By: Adrian Aldiano)
+// Added Temporary Stock back upon removing from cart
         delete cart[id];
     }
-// Added Refresh to ProductUI (By: Adrian Aldiano)
+// Added Refresh to ProductUI
     updateProductUI(id);
     updateCartUI();
     renderCartModal();
@@ -663,7 +663,7 @@ function removeFromCart(id) {
 function submitOrder() {
     const items = Object.values(cart).filter(i => i.qty > 0);
     if (!items.length) return;
-// Added discount into submitOrder function payload (By: Adrian Aldiano)
+// Added discount into submitOrder function payload)
     const payload = items.map(i => ({
         id: i.id,
         qty: i.qty,
@@ -698,7 +698,7 @@ function submitOrder() {
         .catch(() => {
             alert('Network error submitting order.');
         });
-// Added Temporary Stock Reset upon Submit (By: Adrian Aldiano)
+// Added Temporary Stock Reset upon Submit
     tempStock = {}; 
 }
 
@@ -716,7 +716,7 @@ function escapeHtml(str) {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     filterCategory('ALL');
-// Added Temporary Stock Refresh and Initialization (By: Adrian Aldiano)
+// Added Temporary Stock Refresh and Initialization
     document.querySelectorAll('.product-card-wrapper').forEach(card => {
         tempStock[card.id.replace('product_', '')] = parseInt(card.dataset.stock);
     });
